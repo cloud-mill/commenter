@@ -1,0 +1,13 @@
+{
+  "server_host": "127.0.0.1",
+  "server_port": 7000,
+  "mongodb_config": {
+    "mongo_username": "commenter",
+    "mongo_password": "commenter",
+    "mongo_host": "localhost",
+    "mongo_port": 27017,
+    "mongo_db_name": "commenter",
+    "mongo_auth_source": "admin",
+    "mongo_max_connections": 100
+  }
+}
