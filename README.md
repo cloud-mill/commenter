@@ -121,11 +121,11 @@ into the container; and you want to run the commenter container at local port `7
 | React to a Comment                  | `POST`      | `/reaction/new`         | Permits a user to react to a comment with an emoji.                                            | `{ "reactor_account_id": "Uuid string", "reactor_username": "string", "emoji_unicode": "string", "reacted_comment_id": "Uuid string" }` |
 | Undo a Reaction                     | `POST`      | `/reaction/undo`        | Allows a user to remove their reaction from a comment.                                         | `{ "reactor_account_id": "Uuid string", "reactor_username": "string", "emoji_unicode": "string", "reacted_comment_id": "Uuid string" }` |
 
-### Contributors
+### Contributors 👥
 
 Java M (https://github.com/wjjmjh)
 
-### Our Values
+### Our Values 🌟
 
 We have fundamental philosophy: Giving back more to the world than we take from it. We're deeply committed to being
 active contributors, supporters, and sponsors within the open-source community.
