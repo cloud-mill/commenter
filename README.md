@@ -4,12 +4,12 @@
 
 ### What's the challenge? 💪
 
-Implementing a commenting system with nested threads and multiple levels of engagement, such as replies and reactions,
-presents challenges primarily around data structure, performance, and scalability;  
-The data model must efficiently handle the complexity of relationships and hierarchies within comments. Performance
-optimization is key to ensure quick loading and posting of comments, especially as the volume of data grows;  
-Ensuring the commenting system can scale to accommodate an increasing number of users and comments while maintaining
-fast response times is also a significant technical hurdle.
+- Implementing a commenting system with nested threads and multiple levels of engagement, such as replies and reactions,
+  presents challenges primarily around data structure, performance, and scalability;
+- The data model must efficiently handle the complexity of relationships and hierarchies within comments. Performance
+  optimization is key to ensure quick loading and posting of comments, especially as the volume of data grows;
+- Ensuring the commenting system can scale to accommodate an increasing number of users and comments while maintaining
+  fast response times is also a significant technical hurdle.
 
 ### Features ✨
 
