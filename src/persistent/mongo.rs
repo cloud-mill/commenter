@@ -167,7 +167,11 @@ impl PersistentLayer {
         }
     }
 
-    pub async fn find_next_level_comments(&self, current_path: String) -> Result<Vec<Comment>> {
+    pub async fn find_next_level_comments(
+        &self,
+        current_path: String,
+        limit: Option<u32>,
+    ) -> Result<Vec<Comment>> {
         let db = self.mongo_client.database(&self.mongo_config.mongo_db_name);
         let comments_collection: Collection<Document> = db.collection("comments");
 
@@ -182,11 +186,16 @@ impl PersistentLayer {
             }
         };
 
-        let find_options = FindOptions::builder()
-            .sort(doc! {
+        let find_options = {
+            let builder = FindOptions::builder().sort(doc! {
                 "commented_timestamp": -1  // indicates descending order, latest first
-            })
-            .build();
+            });
+
+            match limit {
+                Some(l) => builder.limit(Some(i64::from(l))).build(),
+                None => builder.build(),
+            }
+        };
 
         let mut cursor = comments_collection.find(filter, Some(find_options)).await?;
 

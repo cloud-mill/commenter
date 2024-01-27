@@ -234,6 +234,7 @@ pub async fn delete_comment(
 #[derive(Deserialize, Clone, Debug)]
 pub struct GetRootCommentsRequest {
     pub resource_id: Uuid,
+    pub limit: Option<u32>,
 }
 
 #[instrument(level = "trace")]
@@ -244,7 +245,7 @@ pub async fn get_root_comments(
     debug!(payload = ?payload);
 
     let root_comments = persistent_layer
-        .find_next_level_comments(payload.resource_id.to_string())
+        .find_next_level_comments(payload.resource_id.to_string(), payload.limit)
         .await
         .map_err(|_| ServerError::internal_server_error())?;
 
@@ -254,6 +255,7 @@ pub async fn get_root_comments(
 #[derive(Deserialize, Clone, Debug)]
 pub struct GetBranchCommentsNextRequest {
     pub branched_from: Uuid,
+    pub limit: Option<u32>,
 }
 
 #[instrument(level = "trace")]
@@ -271,7 +273,7 @@ pub async fn get_branch_comments_next(
 
     // find branch comments by materialized path
     let branch_comments = persistent_layer
-        .find_next_level_comments(root_comment.materialized_path)
+        .find_next_level_comments(root_comment.materialized_path, payload.limit)
         .await
         .map_err(|_| ServerError::internal_server_error())?;
 
