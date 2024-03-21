@@ -20,7 +20,7 @@ use crate::{
 impl PersistentLayer {
     #[instrument(level = "trace", skip_all)]
     pub async fn insert_comment_mongo(&self, comment: Comment) -> Result<()> {
-        let db = self.mongo_client.database(&self.mongo_config.mongo_db_name);
+        let db = self.mongo_client.database(&self.mongo_db_name);
         let comments_collection: Collection<Document> = db.collection("comments");
 
         let bson_comment = bson::to_bson(&comment)?
@@ -45,7 +45,7 @@ impl PersistentLayer {
         comment_id: Uuid,
         comment_reaction_to_append: CommentReaction,
     ) -> Result<()> {
-        let db = self.mongo_client.database(&self.mongo_config.mongo_db_name);
+        let db = self.mongo_client.database(&self.mongo_db_name);
         let comments_collection: Collection<Comment> = db.collection("comments");
 
         let update_filter = doc! {
@@ -77,7 +77,7 @@ impl PersistentLayer {
         comment_id: Uuid,
         comment_reaction_to_remove: CommentReaction,
     ) -> Result<()> {
-        let db = self.mongo_client.database(&self.mongo_config.mongo_db_name);
+        let db = self.mongo_client.database(&self.mongo_db_name);
         let comments_collection: Collection<Comment> = db.collection("comments");
 
         let update_filter = doc! {
@@ -108,7 +108,7 @@ impl PersistentLayer {
     where
         T: serde::Serialize,
     {
-        let db = self.mongo_client.database(&self.mongo_config.mongo_db_name);
+        let db = self.mongo_client.database(&self.mongo_db_name);
         let comments_collection: Collection<Comment> = db.collection("comments");
 
         let update_filter = doc! {
@@ -132,7 +132,7 @@ impl PersistentLayer {
 
     #[instrument(level = "trace", skip_all)]
     pub async fn prune_comments_mongo(&self, comment_materialized_path: String) -> Result<()> {
-        let db = self.mongo_client.database(&self.mongo_config.mongo_db_name);
+        let db = self.mongo_client.database(&self.mongo_db_name);
         let comments_collection: Collection<Comment> = db.collection("comments");
 
         let regex_pattern = format!("^{}", comment_materialized_path); // starts with the given path
@@ -152,7 +152,7 @@ impl PersistentLayer {
     }
 
     pub async fn find_comment(&self, comment_id: Uuid) -> Result<Comment> {
-        let db = self.mongo_client.database(&self.mongo_config.mongo_db_name);
+        let db = self.mongo_client.database(&self.mongo_db_name);
         let comments_collection: Collection<Document> = db.collection("comments");
 
         let filter = doc! {
@@ -172,7 +172,7 @@ impl PersistentLayer {
         current_path: String,
         limit: Option<u32>,
     ) -> Result<Vec<Comment>> {
-        let db = self.mongo_client.database(&self.mongo_config.mongo_db_name);
+        let db = self.mongo_client.database(&self.mongo_db_name);
         let comments_collection: Collection<Document> = db.collection("comments");
 
         let regex_pattern = format!(
@@ -209,7 +209,7 @@ impl PersistentLayer {
     }
 
     pub async fn find_all_comments(&self, current_path: String) -> Result<Vec<Comment>> {
-        let db = self.mongo_client.database(&self.mongo_config.mongo_db_name);
+        let db = self.mongo_client.database(&self.mongo_db_name);
         let comments_collection: Collection<Document> = db.collection("comments");
 
         let regex_pattern = format!("^{}", current_path);
