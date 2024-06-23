@@ -2,10 +2,12 @@ use axum::{
     routing::{get, post},
     Extension, Router,
 };
+use mongodb::options::ClientOptions;
 use serde::{Deserialize, Serialize};
 use std::{fs, net::SocketAddr, str::FromStr, sync::Arc};
 use tracing::info;
 
+use crate::persistent::MongoDbConfig;
 use crate::{
     common::handlers::health_check,
     handlers::{
@@ -41,7 +43,19 @@ pub async fn init_server() {
         init_mongo_connection(&config.mongodb_connection_string, config.max_pool_size)
             .await
             .unwrap();
-    let persistent_layer = PersistentLayer { mongo_client };
+
+    // extract the database name from the connection string
+    let options = ClientOptions::parse(&config.mongodb_connection_string)
+        .await
+        .unwrap();
+    let mongo_db_name = options.default_database.clone().unwrap_or_default();
+
+    let mongo_config = MongoDbConfig { mongo_db_name };
+
+    let persistent_layer = PersistentLayer {
+        mongo_client,
+        mongo_config,
+    };
 
     let api_routes = Router::new()
         .route("/root-comment/new", post(create_root_comment))
