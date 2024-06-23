@@ -4,8 +4,7 @@ use axum::{
 };
 use mongodb::options::ClientOptions;
 use serde::{Deserialize, Serialize};
-use std::env;
-use std::{net::SocketAddr, str::FromStr, sync::Arc};
+use std::{env, net::SocketAddr, str::FromStr, sync::Arc};
 use tracing::info;
 
 use crate::persistent::MongoDbConfig;
