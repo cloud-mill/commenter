@@ -13,7 +13,7 @@ use crate::{
         get_branch_comments_next, get_branch_comments_rest, get_root_comments, react_to_comment,
         undo_react_to_comment, update_comment_text,
     },
-    persistent::{init_mongo_connection, MongoDbConfig, PersistentLayer},
+    persistent::{init_mongo_connection, PersistentLayer},
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -22,7 +22,9 @@ struct Config {
 
     pub server_port: u16,
 
-    pub mongodb_config: MongoDbConfig,
+    pub mongodb_connection_string: String,
+
+    pub max_pool_size: Option<u32>,
 }
 
 const CONFIG_PATH: &str = "/etc/commenter/config.json";
@@ -35,11 +37,11 @@ pub async fn init_server() {
         .expect("error reading config as str at /etc/commenter/config.json");
     let config: Config = serde_json::from_str(&config_str).expect("error deserializing config");
 
-    let mongo_client = init_mongo_connection(&config.mongodb_config).await.unwrap();
-    let persistent_layer = PersistentLayer {
-        mongo_client,
-        mongo_config: config.mongodb_config,
-    };
+    let mongo_client =
+        init_mongo_connection(&config.mongodb_connection_string, config.max_pool_size)
+            .await
+            .unwrap();
+    let persistent_layer = PersistentLayer { mongo_client };
 
     let api_routes = Router::new()
         .route("/root-comment/new", post(create_root_comment))
