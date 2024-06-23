@@ -2,10 +2,12 @@ use axum::{
     routing::{get, post},
     Extension, Router,
 };
+use mongodb::options::ClientOptions;
 use serde::{Deserialize, Serialize};
-use std::{fs, net::SocketAddr, str::FromStr, sync::Arc};
+use std::{env, net::SocketAddr, str::FromStr, sync::Arc};
 use tracing::info;
 
+use crate::persistent::MongoDbConfig;
 use crate::{
     common::handlers::health_check,
     handlers::{
@@ -13,32 +15,52 @@ use crate::{
         get_branch_comments_next, get_branch_comments_rest, get_root_comments, react_to_comment,
         undo_react_to_comment, update_comment_text,
     },
-    persistent::{init_mongo_connection, MongoDbConfig, PersistentLayer},
+    persistent::{init_mongo_connection, PersistentLayer},
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct Config {
     pub server_host: String,
-
     pub server_port: u16,
-
-    pub mongodb_config: MongoDbConfig,
+    pub mongodb_connection_string: String,
+    pub mongodb_max_pool_size: Option<u32>,
 }
-
-const CONFIG_PATH: &str = "/etc/commenter/config.json";
 
 pub async fn init_server() {
     tracing_subscriber::fmt::init();
 
     // Configure server
-    let config_str = fs::read_to_string(CONFIG_PATH)
-        .expect("error reading config as str at /etc/commenter/config.json");
-    let config: Config = serde_json::from_str(&config_str).expect("error deserializing config");
+    let config = Config {
+        server_host: env::var("SERVER_HOST").unwrap_or_else(|_| "127.0.0.1".to_string()),
+        server_port: env::var("SERVER_PORT")
+            .unwrap_or_else(|_| "7000".to_string())
+            .parse()
+            .expect("SERVER_PORT must be a number"),
+        mongodb_connection_string: env::var("MONGODB_CONNECTION_STRING")
+            .expect("MONGODB_CONNECTION_STRING must be set"),
+        mongodb_max_pool_size: env::var("MONGODB_MAX_POOL_SIZE")
+            .ok()
+            .map(|s| s.parse().expect("MONGODB_MAX_POOL_SIZE must be a number")),
+    };
 
-    let mongo_client = init_mongo_connection(&config.mongodb_config).await.unwrap();
+    let mongo_client = init_mongo_connection(
+        &config.mongodb_connection_string,
+        config.mongodb_max_pool_size,
+    )
+    .await
+    .unwrap();
+
+    // extract the database name from the connection string
+    let options = ClientOptions::parse(&config.mongodb_connection_string)
+        .await
+        .unwrap();
+    let mongo_db_name = options.default_database.clone().unwrap_or_default();
+
+    let mongo_config = MongoDbConfig { mongo_db_name };
+
     let persistent_layer = PersistentLayer {
         mongo_client,
-        mongo_config: config.mongodb_config,
+        mongo_config,
     };
 
     let api_routes = Router::new()

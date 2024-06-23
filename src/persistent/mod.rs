@@ -6,24 +6,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(FromRef, Serialize, Deserialize, Clone, Debug)]
 pub struct MongoDbConfig {
-    #[from_ref(skip)]
-    pub mongo_username: String,
-
-    #[from_ref(skip)]
-    pub mongo_password: String,
-
-    #[from_ref(skip)]
-    pub mongo_host: String,
-
-    pub mongo_port: u16,
-
-    #[from_ref(skip)]
     pub mongo_db_name: String,
-
-    #[from_ref(skip)]
-    pub mongo_auth_source: String,
-
-    pub mongo_max_connections: u32,
 }
 
 #[derive(Debug)]
@@ -33,25 +16,24 @@ pub struct PersistentLayer {
     pub mongo_config: MongoDbConfig,
 }
 
-pub async fn init_mongo_connection(config: &MongoDbConfig) -> Result<Client> {
-    let connection_string = format!(
-        "mongodb://{}:{}@{}:{}/{}?authSource={}",
-        &config.mongo_username,
-        &config.mongo_password,
-        &config.mongo_host,
-        &config.mongo_port,
-        &config.mongo_db_name,
-        &config.mongo_auth_source,
-    );
+pub async fn init_mongo_connection(
+    connection_string: &str,
+    max_pool_size: Option<u32>,
+) -> Result<Client> {
+    let mut options = ClientOptions::parse(connection_string).await?;
 
-    let mut options = ClientOptions::parse(&connection_string).await?;
+    if let Some(max_pool_size) = max_pool_size {
+        options.max_pool_size = Some(max_pool_size);
+    }
 
-    options.max_pool_size = Some(config.mongo_max_connections);
+    let client = Client::with_options(options.clone())?;
 
-    let client = Client::with_options(options)?;
+    let db_name = options
+        .default_database
+        .clone()
+        .expect("database name must be specified in the connection string");
 
-    // test client connection
-    let db = client.database(&config.mongo_db_name);
+    let db = client.database(&db_name);
     db.run_command(doc! { "ping": 1 }, None).await?;
 
     Ok(client)
