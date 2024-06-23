@@ -31,7 +31,7 @@ pub async fn init_server() {
 
     // Configure server
     let config = Config {
-        server_host: env::var("SERVER_HOST").unwrap_or_else(|_| "localhost".to_string()),
+        server_host: env::var("SERVER_HOST").unwrap_or_else(|_| "127.0.0.1".to_string()),
         server_port: env::var("SERVER_PORT")
             .unwrap_or_else(|_| "7000".to_string())
             .parse()
