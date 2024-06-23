@@ -43,7 +43,7 @@ pub async fn init_mongo_connection(
         options.max_pool_size = Some(max_pool_size);
     }
 
-    let client = Client::with_options(options)?;
+    let client = Client::with_options(options.clone())?;
 
     let db_name = options
         .default_database
