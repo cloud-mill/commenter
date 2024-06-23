@@ -40,30 +40,13 @@ Comment sections are structured as a tree, with:
 
 ### Requirements
 
-all that's required is a config.json file placed at /etc/commenter/config.json. This file includes all necessary
-configurations for the server and MongoDB connection parameters, Here's an example of what your development config.json
-should look like:
+All necessary configurations for the server and MongoDB connection parameters should be provided via environment
+variables. Here's an example of the required environment variables for your development setup:
 
-```
-{
-  "server_host": "127.0.0.1",
-  "server_port": 7000,
-  "mongodb_config": {
-    "mongo_username": "commenter",
-    "mongo_password": "commenter",
-    "mongo_host": "localhost",
-    "mongo_port": 27017,
-    "mongo_db_name": "commenter",
-    "mongo_auth_source": "admin",
-    "mongo_max_connections": 100
-  }
-}
-```
-
-- server_host (string): The IP address where the Commenter will run.
-- server_port (number): The port number on which the Commenter server will listen.
-- mongodb_config: This section includes the MongoDB connection details. Ensure that these match the credentials and
-  connection details provided in the MongoDB instance you set up.
+- `SERVER_HOST` (string): The IP address where the Commenter will run. Defaults to `127.0.0.1` if not set.
+- `SERVER_PORT` (number): The port number on which the Commenter server will listen. Defaults to `7000` if not set.
+- `MONGODB_CONNECTION_STRING` (string): The MongoDB connection string.
+- `MONGODB_MAX_POOL_SIZE` (number, optional): The maximum number of connections in the MongoDB connection pool.
 
 ### Development MongoDB Setup 🛠️
 
@@ -75,18 +58,12 @@ docker build -t commenter-mongo:latest -f mongo.Dockerfile .
 docker run -v commenter-mongo-data:/data/db -p 27017:27017 -d commenter-mongo:latest
 ```
 
-to connect with this local MongoDB container, the `mongodb_config` is
+To connect to this local MongoDB container, ensure your environment variables are set accordingly:
 
 ```
-{
-    "mongo_username": "commenter",
-    "mongo_password": "commenter",
-    "mongo_host": "localhost",
-    "mongo_port": 27017,
-    "mongo_db_name": "commenter",
-    "mongo_auth_source": "admin",
-    "mongo_max_connections": 100
-  }
+MONGODB_CONNECTION_STRING=mongodb://commenter:commenter@localhost:27017/commenter?authSource=admin
+
+MONGODB_MAX_POOL_SIZE=100
 ```
 
 ### Spin up the commenter! 🚀
@@ -100,11 +77,10 @@ cargo run --package commenter --bin commenter
 ```
 docker build -t commenter:latest .
 
-docker run -v /etc/commenter/config.json:/etc/commenter/config.json -p 7000:7000 commenter:latest
+docker run -e SERVER_HOST=127.0.0.1 -e SERVER_PORT=7000 -e MONGODB_CONNECTION_STRING=mongodb://commenter:commenter@localhost:27017/commenter?authSource=admin -e MONGODB_MAX_POOL_SIZE=100 -p 7000:7000 commenter:latest
 ```
 
-^^ this assumes you have prepared your `config.json` at local `/etc/commenter/config.json` that would be volume mounted
-into the container; and you want to run the commenter container at local port `7000`
+^^ this assumes you want to run the commenter container at local port `7000`
 
 ### API User Manuals 📘
 
